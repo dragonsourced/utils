@@ -11,6 +11,7 @@ int main(int argc, char *argv[])
 		printf("Usage: %s [OPT]...");
 		puts("");
 		puts("Display a random OPT.");
+		return 1;
 	}
 
 	time(&current);
