@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 	int i;
 
 	if (argc < 2) {
-		printf("Usage: %s [OPT]...");
+		printf("Usage: %s [OPT]...", argv[0]);
 		puts("");
 		puts("Display a random OPT.");
 		return 1;
