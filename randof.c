@@ -7,6 +7,12 @@ int main(int argc, char *argv[])
 	time_t current;
 	int i;
 
+	if (argc < 2) {
+		printf("Usage: %s [OPT]...");
+		puts("");
+		puts("Display a random OPT.");
+	}
+
 	time(&current);
 
 	current *= 10000;
