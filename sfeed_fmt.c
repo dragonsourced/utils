@@ -30,12 +30,6 @@ struct entry {
 	char fields[FIELDS][BUFLEN];
 };
 
-time_t get_time(char *line) {
-	time_t t = 0;
-	sscanf("%ld", line, t);
-	return t;
-}
-
 time_t get_age(time_t t) {
 	return current_time - t;
 }
@@ -94,9 +88,9 @@ int main(int argc, const char **argv) {
 	current_time = time(NULL);
 
 	while (fgets(buf, BUFLEN, stdin)) {
-		if (new && is_old(get_time(buf))) continue;
-
 		struct entry e = parse_line(buf);
+
+		if (new && is_old(e.time)) continue;
 
 		for (int i = 0; i < FIELDS; ++i) {
 			if (fields[i])
