@@ -1,7 +1,6 @@
 /* tmpl.c
  *
- * A barebones templating system, which allows files to include
- * other files, perform commands, and pretty much nothing else.
+ * A barebones templating system.
  *
  */
 
@@ -11,17 +10,16 @@
 #include <ctype.h>
 
 void
+printable(const char *src, char *dst, size_t len)
+{
+	for (int i = 0; i < len && isprint(src[i]); ++i)
+		dst[i] = src[i];
+}
+
+void
 include_file(const char *f)
 {
-	char fb[strlen(f)];
-	char *s = fb;
-
-	memset(fb, 0, strlen(f));
-
-	while (isprint(*f))
-		*s++ = *f++;
-
-	puts(fb);
+	puts(f);
 }
 
 void
@@ -39,12 +37,22 @@ command(const char *cmd)
 void
 parse(const char *line)
 {
-	if (*line == '.')
-		command(line);
-	else if (*line == '!')
-		system(line + 1);
-	else
-		printf(line);
+	char p[1024];
+	printable(line, p, 1024);
+
+	switch (*line) {
+		case '.':
+			command(p);
+			break;
+		case '$':
+			printf("%s\r\n", getenv(p + 1));
+			break;
+		case '!':
+			system(p + 1);
+			break;
+		default:
+			printf(line);
+	}
 }
 
 void
