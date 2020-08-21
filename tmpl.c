@@ -40,6 +40,8 @@ parse(const char *str)
 		default:
 			printf("%s", str);
 	}
+
+	fflush(stdout);
 }
 
 int
