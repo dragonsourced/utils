@@ -16,8 +16,9 @@ char *
 strip(char *buf)
 {
 	char *s = buf;
-	while (*++s);
-	while (*--s == '\n' || *s == '\r') *s-- = '\0';
+	while (*++s)
+		if (*s == '\n')
+			*s = '\0';
 	return buf;
 }
 
@@ -25,7 +26,7 @@ void
 var(char *s)
 {
 	s = strip(++s);
-	printf("%s\r\n", getenv(s));
+	printf("%s\n", getenv(s));
 }
 
 void
