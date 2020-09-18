@@ -8,54 +8,59 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <ctype.h>
+#include <stdio.h>
 #include <err.h>
 
-int
-parse(const char *str)
+char *
+strip(char *buf)
 {
-	const char *v;
-	char p[1024];
-	memset(p, 0, 1024);
+	char *s = buf;
+	while (*++s);
+	while (*--s == '\n' || *s == '\r') *s-- = '\0';
+	return buf;
+}
 
-	while (isspace(*str))
-		fputc(*str++, stdout);
+void
+var(char *s)
+{
+	s = strip(++s);
+	printf("%s\r\n", getenv(s));
+}
 
-	for (int i = 0; i < 1024 && isprint(str[i]); ++i)
-		p[i] = str[i];
+void
+sh(char *s)
+{
+	system(++s);
+}
 
-	switch (*str) {
-		case '!':
-			system(str + 1);
-			break;
-		case '$':
-			v = getenv(p + 1);
-			if (v)
-				printf("%s\n", v);
-			else
-				printf("$%s\n", p + 1);
-			break;
-		default:
-			printf("%s", str);
-	}
-
-	fflush(stdout);
+void
+file(FILE *f)
+{
+	char buf[1024];
+	while (fgets(buf, 1023, f))
+		if (*buf == '$')
+			var(buf);
+		else if (*buf == '!')
+			sh(buf);
+		else
+			printf("%s", buf);
 }
 
 int
 main(int argc, const char **argv)
 {
-	for (int i = 1; i < argc; ++i) {
-		FILE *f = fopen(argv[i], "r");
-		if (f) {
-			char buf[1024];
+	int i;
 
-			while (fgets(buf, 1023, f))
-				parse(buf);
-
-			fclose(f);
+	if (argc < 2) {
+		file(stdin);
+	} else {
+		for (i = 1; i < argc; ++i) {
+			FILE *f = fopen(argv[i], "r");
+			if (f)
+				file(f);
+			else
+				err(1, argv[i]);
 		}
 	}
 
