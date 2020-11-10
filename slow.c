@@ -3,10 +3,12 @@
 #include <string.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 
 int
 main(int argc, const char **argv)
 {
+	struct timeval t, _t;
 	char buf[1024];
 	int cps = 20; /* characters per second */
 
@@ -14,7 +16,7 @@ main(int argc, const char **argv)
 		sscanf(argv[1], "%d", &cps);
 	}
 
-	useconds_t t = 1000000 / cps;
+	t.tv_usec = 1000000 / cps;
 
 	system("clear");
 
@@ -22,7 +24,8 @@ main(int argc, const char **argv)
 		for (int i = 0; i < strlen(buf); ++i) {
 			putc(buf[i], stdout);
 			fflush(stdout);
-			usleep(t);
+			_t = t;
+			select(0, NULL, NULL, NULL, &_t);
 		}
 	}
 
