@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 	time(&current);
 	time_t remaining = death_time - current;
 
-	int weeks, days, hours, minutes, seconds;
+	int days, hours, minutes, seconds;
 	long double used, total, left;
 
 	total = death_time - birth_time;
