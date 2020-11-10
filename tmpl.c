@@ -61,7 +61,7 @@ main(int argc, const char **argv)
 			if (f)
 				file(f);
 			else
-				err(1, argv[i]);
+				err(1, "%s", argv[i]);
 		}
 	}
 
