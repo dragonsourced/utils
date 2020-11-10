@@ -1,7 +1,9 @@
 BIN  = ${HOME}/bin
 SRC  = *.c
-LDFLAGS = -s
+
 EXE != echo ${SRC} | sed 's/\.c//g'
+
+CFLAGS += -Wall -std=c99 -pedantic
 
 default: ${EXE}
 
