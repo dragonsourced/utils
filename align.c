@@ -19,7 +19,7 @@ align_line(const char *line, const char a)
 
 	memset(buf, 0, 1024);
 	while (isspace(*line)) ++line;
-	while (*line != '\n') buf[len++] = *line++;
+	while (len < 64 && *line != '\n') buf[len++] = *line++;
 	while (isspace(buf[--len])) buf[len] = '\0';
 	len++;
 
