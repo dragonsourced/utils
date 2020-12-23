@@ -2,7 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#define WIDTH 64
+#define WIDTH 72
 
 void
 margin(size_t size)
@@ -19,7 +19,7 @@ align_line(const char *line, const char a)
 
 	memset(buf, 0, 1024);
 	while (isspace(*line)) ++line;
-	while (len < 64 && *line != '\n') buf[len++] = *line++;
+	while (len < WIDTH && *line != '\n') buf[len++] = *line++;
 	while (isspace(buf[--len])) buf[len] = '\0';
 	len++;
 
