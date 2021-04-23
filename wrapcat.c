@@ -72,7 +72,9 @@ putch(char ch, struct cursor *curs)
 		if (curs->x > WRAP_LEN) {
 			erase_word(curs);
 			printf("\n%s", curs->wrd);
-			curs->x = 0;
+			memset(curs->wrd, 0, 1024);
+			curs->x = curs->wrd_i;
+			curs->wrd_i = 0;
 		}
 	}
 }
