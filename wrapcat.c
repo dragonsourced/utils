@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 1
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <termios.h>
@@ -18,16 +20,62 @@ setup(void)
 	tcgetattr(STDOUT_FD, &orig_attr);
 
 	struct termios t = orig_attr;
-	t.c_lflag &= ISIG;
+	t.c_lflag &= ~ICANON & ~ECHO;
+	t.c_lflag |= ISIG | VEOF;
 	t.c_cc[VMIN] = 1;
 	t.c_cc[VTIME] = 2;
 	tcsetattr(STDOUT_FD, TCSANOW, &t);
 }
 
+char *text;
+size_t textl = 0;
+size_t texts = 0;
+
 void
 cleanup(void)
 {
+	free(text);
 	tcsetattr(STDOUT_FD, TCSANOW, &orig_attr);
+}
+
+void
+addch(const char ch)
+{
+	fputc(ch, stderr);
+
+	switch (ch) {
+	case '\b':
+		textl--;
+		break;
+	default:
+		textl++;
+	}
+
+	if (texts == 0) {
+		texts = textl;
+		text = malloc(texts);
+	} else while (texts < textl) {
+		texts *= 2;
+		text = realloc(text, texts);
+	}
+
+	switch (ch) {
+	case '\b':
+		text[textl] = 0;
+		break;
+
+	default:
+		text[textl-1] = ch;
+	}
+
+}
+
+void
+adds(const char *s)
+{
+	while (*s) {
+		addch(*s++);
+	}
 }
 
 struct cursor {
@@ -42,11 +90,11 @@ erase_word(struct cursor *curs)
 	int max = curs->wrd_i;
 
 	for (int i = 0; i < max; ++i) {
-		putchar('\b');
+		addch('\b');
 	}
 
 	for (int i = 0; i < max; ++i) {
-		putchar(' ');
+		fputc(' ', stderr);
 	}
 }
 
@@ -55,7 +103,7 @@ putch(char ch, struct cursor *curs)
 {
 	switch (ch) {
 	case '\n':
-		printf("\n");
+		addch('\n');
 		curs->x = 0;
 		break;
 
@@ -67,11 +115,12 @@ putch(char ch, struct cursor *curs)
 			curs->wrd[curs->wrd_i++] = ch;
 		}
 
-		putchar(ch);
+		addch(ch);
 		curs->x++;
 		if (curs->x > WRAP_LEN) {
 			erase_word(curs);
-			printf("\n%s", curs->wrd);
+			addch('\n');
+			adds(curs->wrd);
 			memset(curs->wrd, 0, 1024);
 			curs->x = curs->wrd_i;
 			curs->wrd_i = 0;
@@ -80,15 +129,29 @@ putch(char ch, struct cursor *curs)
 }
 
 int
-main(void)
+main(int argc, const char **argv)
 {
+	FILE *f;
 	setup();
+
+	if (argc > 1) {
+		f = fopen(argv[1], "r");
+	} else {
+		f = stdin;
+	}
 
 	struct cursor curs = { 0 };
 	char ch;
 
-	while ((ch = getchar())) {
+	while ((ch = fgetc(f))) {
+		if (ch == EOF || ch == 4) { /* End Of Transmission, ^D */
+			break;
+		}
 		putch(ch, &curs);
+	}
+
+	if (!isatty(fileno(stdout))) {
+		printf("%s", text);
 	}
 
 	cleanup();
