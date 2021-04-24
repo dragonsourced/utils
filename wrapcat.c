@@ -41,13 +41,15 @@ cleanup(void)
 void
 addch(const char ch)
 {
-	fputc(ch, stderr);
-
 	switch (ch) {
 	case '\b':
+		fputc('\b', stderr);
+		fputc(' ', stderr);
+		fputc('\b', stderr);
 		textl--;
 		break;
 	default:
+		fputc(ch, stderr);
 		textl++;
 	}
 
@@ -92,10 +94,6 @@ erase_word(struct cursor *curs)
 	for (int i = 0; i < max; ++i) {
 		addch('\b');
 	}
-
-	for (int i = 0; i < max; ++i) {
-		fputc(' ', stderr);
-	}
 }
 
 void
@@ -107,7 +105,19 @@ putch(char ch, struct cursor *curs)
 		curs->x = 0;
 		break;
 
+	case '\b':
+	case 0x7F: /* DEL */
+		if (curs->x > 0) {
+			addch('\b');
+			curs->x--;
+		}
+		break;
+
 	default:
+		if (!isprint(ch)) {
+			break;
+		}
+
 		if (isspace(ch)) {
 			memset(curs->wrd, 0, 1024);
 			curs->wrd_i = 0;
