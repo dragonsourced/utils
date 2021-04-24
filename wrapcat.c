@@ -38,18 +38,24 @@ cleanup(void)
 	tcsetattr(STDOUT_FD, TCSANOW, &orig_attr);
 }
 
+static int should_echo = 1;
+
 void
 addch(const char ch)
 {
 	switch (ch) {
 	case '\b':
-		fputc('\b', stderr);
-		fputc(' ', stderr);
-		fputc('\b', stderr);
+		if (should_echo) {
+			fputc('\b', stderr);
+			fputc(' ', stderr);
+			fputc('\b', stderr);
+		}
 		textl--;
 		break;
 	default:
-		fputc(ch, stderr);
+		if (should_echo) {
+			fputc(ch, stderr);
+		}
 		textl++;
 	}
 
@@ -138,26 +144,33 @@ putch(char ch, struct cursor *curs)
 	}
 }
 
-int
-main(int argc, const char **argv)
+void
+wrap_file(FILE *f)
 {
-	FILE *f;
-	setup();
-
-	if (argc > 1) {
-		f = fopen(argv[1], "r");
-	} else {
-		f = stdin;
-	}
-
 	struct cursor curs = { 0 };
 	char ch;
+
+	should_echo = isatty(fileno(f)) || isatty(fileno(stdout));
 
 	while ((ch = fgetc(f))) {
 		if (ch == EOF || ch == 4) { /* End Of Transmission, ^D */
 			break;
 		}
 		putch(ch, &curs);
+	}
+}
+
+int
+main(int argc, const char **argv)
+{
+	setup();
+
+	if (argc > 1) for (int i = 1; i < argc; ++i) {
+		FILE *f = fopen(argv[i], "r");
+		wrap_file(f);
+		fclose(f);
+	} else {
+		wrap_file(stdin);
 	}
 
 	if (!isatty(fileno(stdout))) {
