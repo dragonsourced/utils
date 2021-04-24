@@ -9,8 +9,9 @@
 
 struct termios orig_attr;
 
-#define STDOUT_FD 0
+#define STDOUT_FD fileno(stdout)
 #define WRAP_LEN 72
+#define TAB_STOP 8
 
 void
 setup(void)
@@ -119,6 +120,13 @@ putch(char ch, struct cursor *curs)
 		}
 		break;
 
+	case '\t':
+		addch('\t');
+		do {
+			curs->x++;
+		} while (curs->x % TAB_STOP != 0);
+		break;
+
 	default:
 		if (!isprint(ch)) {
 			break;
@@ -173,7 +181,7 @@ main(int argc, const char **argv)
 		wrap_file(stdin);
 	}
 
-	if (!isatty(fileno(stdout))) {
+	if (!isatty(STDOUT_FD)) {
 		printf("%s", text);
 	}
 
