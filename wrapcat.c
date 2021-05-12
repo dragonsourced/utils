@@ -100,6 +100,14 @@ erase_word(struct cursor *curs)
 
 	for (int i = 0; i < max; ++i) {
 		addch('\b');
+		curs->x--;
+	}
+	curs->x = (curs->x < 0? 0 : curs->x);
+	if (curs->x > 0) {
+		while (curs->x > 0 && isspace(text[textl-1])) {
+			addch('\b');
+			curs->x--;
+		}
 	}
 }
 
