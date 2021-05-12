@@ -9,6 +9,7 @@
 
 struct termios orig_attr;
 
+#define STDIN_FD fileno(stdin)
 #define STDOUT_FD fileno(stdout)
 #define WRAP_LEN 72
 #define TAB_STOP 8
@@ -18,14 +19,13 @@ setup(void)
 {
 	setvbuf(stdout, NULL, _IONBF, 0);
 
-	tcgetattr(STDOUT_FD, &orig_attr);
+	tcgetattr(STDIN_FD, &orig_attr);
 
 	struct termios t = orig_attr;
-	t.c_lflag &= ~ICANON & ~ECHO;
-	t.c_lflag |= ISIG | VEOF;
+	t.c_lflag &= ~(ICANON | ECHO);
 	t.c_cc[VMIN] = 1;
 	t.c_cc[VTIME] = 2;
-	tcsetattr(STDOUT_FD, TCSANOW, &t);
+	tcsetattr(STDIN_FD, TCSANOW, &t);
 }
 
 char *text;
@@ -36,7 +36,7 @@ void
 cleanup(void)
 {
 	free(text);
-	tcsetattr(STDOUT_FD, TCSANOW, &orig_attr);
+	tcsetattr(STDIN_FD, TCSANOW, &orig_attr);
 }
 
 static int should_echo = 1;
